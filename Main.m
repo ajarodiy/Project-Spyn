@@ -1,42 +1,50 @@
 % Documentation - https://sites.google.com/a/asu.edu/fse100-cse-wiki/ev3-matlab-library-documentation
+
+brick = ConnectBrick('ROBOT');
+
 global key
 InitKeyboard();
 
 brick.beep(); 
-brick.SetColorMode(1, 2);        % (port, mode)
+brick.SetColorMode(1, 2);
+
+lastcolor = 9  % Variable initialized with a random color
+
 
 while 1
-    pause(0.1);
-    switch key
-        
-        case 'downarrow'
-            %{
-            % Color Detection
-            color = brick.ColorCode(1);
-            if color == 2
-                disp("Blue");
-            elseif color == 4
-                disp("Yellow");
-            elseif color == 3
-                disp("Green");
-            elseif color == 5
-                disp("Red");
-            else
-                disp("Unknown Color");
-            end
-            %}
-            
-            %{
-            % Distance Detection
-            distance = brick.UltrasonicDist(4);
-            if distance < 15
-                brick.beep();
-            end
-            %}
-            
-        case 'q'
-            break;
-    end
- 
+   pause(0.1)
+      
+   color = brick.ColorCode(1);
+   
+   if color == 2     % Blue - Pick up passenger
+       brick.StopMotor('AD');
+       disp("Blue Detected");
+   elseif color == 4   % Yellow - Drop off passenger
+       brick.StopMotor('AD');
+       disp("Yellow Detected");
+   elseif color == 3   % Green - Start the vehicle
+       brick.MoveMotor('AD', 50); 
+       disp("Green Detected");
+   elseif color == 5 && lastcolor ~= 5   % Detects red for first time - Pause the vehicle for 4 seconds
+       disp("Red Detected")
+       brick.StopMotor('AD');
+       pause(4);    % Pauses for 4 seconds
+       brick.MoveMotor('AD', 50);
+   else
+       %disp("Unknown Color");
+   end
+    
+   lastcolor = color;
+   
+   % Manual control
+   switch key
+       case 'downarrow'  % Start the vehicle
+           brick.MoveMotor('AD', 50)
+       case 'uparrow'    % Stop the vehicle
+           brick.StopMotor('AD')
+   end
+   
+       
 end
+
 CloseKeyboard();
